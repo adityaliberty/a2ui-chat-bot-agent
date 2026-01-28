@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { A2UIMessage, A2UIComponent } from "../../shared/types.js";
 import { A2UIGenerator } from "../a2ui/generator.js";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "AIzaSyDJf9wNuf252fpn367lG3ihDCXZg8dtK1k");
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 
 interface ConversationContext {
   messages: Array<{ role: "user" | "model"; content: string }>;
@@ -33,15 +33,15 @@ export class GeminiAgent {
 
     context.messages.push({ role: "user", content: userMessage });
 
-    const model = genAI.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash",
       generationConfig: {
         responseMimeType: "application/json",
-      }
+      },
     });
 
     const systemPrompt = this.buildSystemPrompt();
-    
+
     const conversationHistory = context.messages.map(msg => ({
       role: msg.role,
       parts: [{ text: msg.content }],
@@ -49,8 +49,11 @@ export class GeminiAgent {
 
     const result = await model.generateContent({
       contents: [
-        { role: "user", parts: [{ text: `SYSTEM INSTRUCTIONS:\n${systemPrompt}` }] },
-        ...conversationHistory
+        {
+          role: "user",
+          parts: [{ text: `SYSTEM INSTRUCTIONS:\n${systemPrompt}` }],
+        },
+        ...conversationHistory,
       ],
     });
 
@@ -62,7 +65,10 @@ export class GeminiAgent {
       console.error("Failed to parse Gemini response as JSON:", responseText);
       return {
         text: "I'm sorry, I encountered an error generating the interface.",
-        a2uiMessages: A2UIGenerator.errorCard(surfaceId, "Invalid response from AI")
+        a2uiMessages: A2UIGenerator.errorCard(
+          surfaceId,
+          "Invalid response from AI"
+        ),
       };
     }
 
@@ -74,7 +80,7 @@ export class GeminiAgent {
       a2uiMessages = [
         A2UIGenerator.surfaceUpdate(surfaceId, a2ui.components),
         A2UIGenerator.dataModelUpdate(surfaceId, a2ui.dataModel || {}),
-        A2UIGenerator.beginRendering(surfaceId, a2ui.rootComponentId)
+        A2UIGenerator.beginRendering(surfaceId, a2ui.rootComponentId),
       ];
     }
 
@@ -97,7 +103,10 @@ export class GeminiAgent {
     if (!context) {
       return {
         text: "Session expired",
-        a2uiMessages: A2UIGenerator.errorCard(surfaceId, "Session expired. Please refresh.")
+        a2uiMessages: A2UIGenerator.errorCard(
+          surfaceId,
+          "Session expired. Please refresh."
+        ),
       };
     }
 
@@ -105,11 +114,11 @@ export class GeminiAgent {
     const actionDesc = `User performed action: "${action}" with data: ${JSON.stringify(data)}`;
     context.messages.push({ role: "user", content: actionDesc });
 
-    const model = genAI.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash",
       generationConfig: {
         responseMimeType: "application/json",
-      }
+      },
     });
 
     const systemPrompt = this.buildSystemPrompt();
@@ -120,8 +129,11 @@ export class GeminiAgent {
 
     const result = await model.generateContent({
       contents: [
-        { role: "user", parts: [{ text: `SYSTEM INSTRUCTIONS:\n${systemPrompt}` }] },
-        ...conversationHistory
+        {
+          role: "user",
+          parts: [{ text: `SYSTEM INSTRUCTIONS:\n${systemPrompt}` }],
+        },
+        ...conversationHistory,
       ],
     });
 
@@ -132,11 +144,15 @@ export class GeminiAgent {
     } catch (e) {
       return {
         text: "I'm sorry, I encountered an error processing your action.",
-        a2uiMessages: A2UIGenerator.errorCard(surfaceId, "Invalid response from AI")
+        a2uiMessages: A2UIGenerator.errorCard(
+          surfaceId,
+          "Invalid response from AI"
+        ),
       };
     }
 
     const { text, a2ui } = parsedResponse;
+
     context.messages.push({ role: "model", content: text });
 
     let a2uiMessages: A2UIMessage[] = [];
@@ -144,7 +160,7 @@ export class GeminiAgent {
       a2uiMessages = [
         A2UIGenerator.surfaceUpdate(surfaceId, a2ui.components),
         A2UIGenerator.dataModelUpdate(surfaceId, a2ui.dataModel || {}),
-        A2UIGenerator.beginRendering(surfaceId, a2ui.rootComponentId)
+        A2UIGenerator.beginRendering(surfaceId, a2ui.rootComponentId),
       ];
     }
 
