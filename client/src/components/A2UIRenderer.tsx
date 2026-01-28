@@ -12,6 +12,7 @@ import { Column } from './A2UIComponents/Column';
 import { List } from './A2UIComponents/List';
 import { Label } from './A2UIComponents/Label';
 import { Divider } from './A2UIComponents/Divider';
+import { Image } from './A2UIComponents/Image';
 
 interface A2UIRendererProps {
   componentId: string;
@@ -60,6 +61,8 @@ export const A2UIRenderer: React.FC<A2UIRendererProps> = ({ componentId, onActio
       return <Label {...props} />;
     case 'Divider':
       return <Divider {...props} />;
+    case 'Image':
+      return <Image {...props} />;
     default:
       return <div>Unknown component type: {component.type}</div>;
   }

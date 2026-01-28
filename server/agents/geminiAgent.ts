@@ -107,6 +107,27 @@ Keep responses concise and actionable.`;
 
     // Detect task type from user message with more specific keywords
     if (
+      lowerMessage.includes("top 5") ||
+      lowerMessage.includes("recommend") ||
+      lowerMessage.includes("list") ||
+      lowerMessage.includes("find") ||
+      lowerMessage.includes("shushi") ||
+      lowerMessage.includes("sushi") ||
+      (lowerMessage.includes("restaurant") && lowerMessage.includes("bangalore"))
+    ) {
+      context.taskType = "restaurant_booking";
+      const sushiRestaurants = [
+        { id: '1', name: 'The Fatty Bao', location: 'Indiranagar, Bangalore', image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=500&auto=format&fit=crop&q=60' },
+        { id: '2', name: 'Edo Japanese Restaurant', location: 'ITC Gardenia, Bangalore', image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=500&auto=format&fit=crop&q=60' },
+        { id: '3', name: 'Harima', location: 'Residency Road, Bangalore', image: 'https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=500&auto=format&fit=crop&q=60' },
+        { id: '4', name: 'Sushimen', location: 'Koramangala, Bangalore', image: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=500&auto=format&fit=crop&q=60' },
+        { id: '5', name: 'Mikusu', location: 'Conrad Bangalore', image: 'https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=500&auto=format&fit=crop&q=60' },
+      ];
+      context.taskData.restaurants = sushiRestaurants;
+      return A2UIGenerator.restaurantList(surfaceId, sushiRestaurants);
+    }
+
+    if (
       lowerMessage.includes("book restaurant") ||
       lowerMessage.includes("book a restaurant") ||
       lowerMessage.includes("restaurant booking") ||
@@ -127,8 +148,23 @@ Keep responses concise and actionable.`;
     }
 
     if (
-      lowerMessage.includes("book flight") ||
       lowerMessage.includes("search flight") ||
+      lowerMessage.includes("find flight") ||
+      lowerMessage.includes("flight to") ||
+      lowerMessage.includes("flight from")
+    ) {
+      context.taskType = "flight_booking";
+      const flights = [
+        { id: 'f1', airline: 'IndiGo', from: 'BLR', to: 'DEL', time: '06:00 - 08:45', price: '₹5,499', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/IndiGo_A320-232_VT-IFL_at_Indira_Gandhi_International_Airport.jpg/640px-IndiGo_A320-232_VT-IFL_at_Indira_Gandhi_International_Airport.jpg' },
+        { id: 'f2', airline: 'Air India', from: 'BLR', to: 'DEL', time: '08:30 - 11:15', price: '₹6,200', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Air_India_Boeing_787-8_Dreamliner_VT-ANQ_at_London_Heathrow_Airport.jpg/640px-Air_India_Boeing_787-8_Dreamliner_VT-ANQ_at_London_Heathrow_Airport.jpg' },
+        { id: 'f3', airline: 'Vistara', from: 'BLR', to: 'DEL', time: '10:15 - 13:00', price: '₹7,100', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Vistara_Airbus_A320-251N_VT-TNC_at_Indira_Gandhi_International_Airport.jpg/640px-Vistara_Airbus_A320-251N_VT-TNC_at_Indira_Gandhi_International_Airport.jpg' },
+      ];
+      context.taskData.flights = flights;
+      return this.generateFlightList(surfaceId, flights);
+    }
+
+    if (
+      lowerMessage.includes("book flight") ||
       lowerMessage.includes("flight booking") ||
       (lowerMessage.includes("flight") && lowerMessage.includes("book"))
     ) {
@@ -168,9 +204,43 @@ Keep responses concise and actionable.`;
   }
 
   /**
+   * Generate flight list for selection
+   */
+  private generateFlightList(surfaceId: string, flights: any[]): A2UIMessage[] {
+    const flightComponents: any[] = [];
+    const cardIds: string[] = [];
+
+    flights.forEach((f, i) => {
+      const cardId = `flightCard-${i}`;
+      const imgId = `flightImg-${i}`;
+      const infoId = `flightInfo-${i}`;
+      const priceId = `flightPrice-${i}`;
+      const btnId = `flightBtn-${i}`;
+
+      flightComponents.push(
+        A2UIGenerator.card(cardId, '', [imgId, infoId, priceId, btnId]),
+        A2UIGenerator.image(imgId, f.image, f.airline),
+        A2UIGenerator.text(infoId, `**${f.airline}** | ${f.from} ➔ ${f.to}\n${f.time}`),
+        A2UIGenerator.text(priceId, `Price: **${f.price}**`),
+        A2UIGenerator.button(btnId, 'Select Flight', `select-flight-${f.id}`)
+      );
+      cardIds.push(cardId);
+    });
+
+    const rootId = 'flightListRoot';
+    return [
+      A2UIGenerator.surfaceUpdate(surfaceId, [
+        A2UIGenerator.column(rootId, cardIds),
+        ...flightComponents
+      ]),
+      A2UIGenerator.beginRendering(surfaceId, rootId),
+    ];
+  }
+
+  /**
    * Generate flight booking form
    */
-  private generateFlightBookingForm(surfaceId: string): A2UIMessage[] {
+  private generateFlightBookingForm(surfaceId: string, flightInfo?: string): A2UIMessage[] {
     const components = [
       A2UIGenerator.card("flightCard", "Book a Flight", ["flightForm"]),
       A2UIGenerator.form("flightForm", [
@@ -303,9 +373,32 @@ Keep responses concise and actionable.`;
     // Store action data
     context.taskData = { ...context.taskData, ...data };
 
+    // Handle flight selection
+    if (context.taskType === "flight_booking" && action.startsWith('select-flight-')) {
+      const flightId = action.replace('select-flight-', '');
+      const flight = context.taskData.flights?.find((f: any) => f.id === flightId);
+      context.taskData.selectedFlight = flight;
+      return {
+        text: `Booking flight ${flight?.airline} from ${flight?.from} to ${flight?.to}.`,
+        a2uiMessages: this.generateFlightBookingForm(surfaceId, `${flight?.airline} (${flight?.from}-${flight?.to})`),
+      };
+    }
+
     // Generate confirmation based on task type
     if (context.taskType === "restaurant_booking") {
-      const restaurant = data.restaurantSelect || "Selected restaurant";
+      // Handle "Book Now" button click from the list
+      if (action.startsWith('book-restaurant-')) {
+        const restId = action.replace('book-restaurant-', '');
+        const restaurant = context.taskData.restaurants?.find((r: any) => r.id === restId);
+        context.taskData.selectedRestaurant = restaurant;
+        return {
+          text: `Booking a table at ${restaurant?.name || 'the restaurant'}.`,
+          a2uiMessages: A2UIGenerator.restaurantBookingForm(surfaceId, restaurant?.name),
+        };
+      }
+
+      // Handle form submission
+      const restaurant = context.taskData.selectedRestaurant?.name || data.restaurantSelect || "Selected restaurant";
       const date = data.dateInput || "Selected date";
       const guests = data.guestsInput || "Number of guests";
       return {
@@ -336,6 +429,26 @@ Keep responses concise and actionable.`;
             "Project ID":
               "PROJ-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
             Status: "Active",
+          }
+        ),
+      };
+    }
+
+    if (context.taskType === "flight_booking") {
+      const flight = context.taskData.selectedFlight?.airline || "Selected Flight";
+      const from = context.taskData.selectedFlight?.from || data.fromInput || "Origin";
+      const to = context.taskData.selectedFlight?.to || data.toInput || "Destination";
+      const date = data.dateInput || "Date";
+      return {
+        text: `Success! Your flight ${flight} from ${from} to ${to} on ${date} is booked.`,
+        a2uiMessages: A2UIGenerator.confirmationCard(
+          surfaceId,
+          "Flight Booked",
+          {
+            Flight: flight,
+            Route: `${from} ➔ ${to}`,
+            Date: date,
+            "Booking ID": "FLT-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
           }
         ),
       };

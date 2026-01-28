@@ -163,38 +163,72 @@ export class A2UIGenerator {
   }
 
   /**
+   * Create an image component
+   */
+  static image(id: string, src: string, alt?: string): A2UIComponent {
+    return {
+      id,
+      type: 'Image',
+      properties: { src, alt, className: 'w-full h-32' },
+    };
+  }
+
+  /**
+   * Generate restaurant list for selection
+   */
+  static restaurantList(surfaceId: string, restaurants: any[]): Array<SurfaceUpdate | DataModelUpdate | BeginRendering> {
+    const restaurantComponents: A2UIComponent[] = [];
+    const cardIds: string[] = [];
+
+    restaurants.forEach((r, i) => {
+      const cardId = `restCard-${i}`;
+      const imgId = `restImg-${i}`;
+      const nameId = `restName-${i}`;
+      const locId = `restLoc-${i}`;
+      const btnId = `restBtn-${i}`;
+
+      restaurantComponents.push(
+        this.card(cardId, '', [imgId, nameId, locId, btnId]),
+        this.image(imgId, r.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60', r.name),
+        this.text(nameId, `**${r.name}**`),
+        this.text(locId, `📍 ${r.location || 'Bangalore'}`),
+        this.button(btnId, 'Book Now', `book-restaurant-${r.id}`)
+      );
+      cardIds.push(cardId);
+    });
+
+    const rootId = 'restaurantListRoot';
+    const components = [
+      this.column(rootId, cardIds),
+      ...restaurantComponents
+    ];
+
+    return [
+      this.surfaceUpdate(surfaceId, components),
+      this.dataModelUpdate(surfaceId, { restaurants }),
+      this.beginRendering(surfaceId, rootId),
+    ];
+  }
+
+  /**
    * Generate restaurant booking form
    */
-  static restaurantBookingForm(surfaceId: string): Array<SurfaceUpdate | DataModelUpdate | BeginRendering> {
+  static restaurantBookingForm(surfaceId: string, restaurantName?: string): Array<SurfaceUpdate | DataModelUpdate | BeginRendering> {
+    const title = restaurantName ? `Book at ${restaurantName}` : 'Book a Restaurant';
     const components: A2UIComponent[] = [
-      this.card('bookingCard', 'Book a Restaurant', ['bookingForm']),
-      this.form('bookingForm', ['restaurantLabel', 'restaurantSelect', 'dateLabel', 'dateInput', 'timeLabel', 'timeInput', 'guestsLabel', 'guestsInput', 'submitBtn']),
-      this.label('restaurantLabel', 'Select Restaurant'),
-      this.select('restaurantSelect', [
-        { label: 'Italian Bistro', value: 'italian-bistro' },
-        { label: 'Sushi Palace', value: 'sushi-palace' },
-        { label: 'French Café', value: 'french-cafe' },
-        { label: 'Mexican Grill', value: 'mexican-grill' },
-      ]),
+      this.card('bookingCard', title, ['bookingForm']),
+      this.form('bookingForm', ['dateLabel', 'dateInput', 'timeLabel', 'timeInput', 'guestsLabel', 'guestsInput', 'submitBtn']),
       this.label('dateLabel', 'Date'),
       this.input('dateInput', 'YYYY-MM-DD', 'date'),
       this.label('timeLabel', 'Time'),
       this.input('timeInput', 'HH:MM', 'time'),
       this.label('guestsLabel', 'Number of Guests'),
       this.input('guestsInput', 'Enter number', 'number'),
-      this.button('submitBtn', 'Book Table'),
+      this.button('submitBtn', 'Confirm Booking'),
     ];
 
     return [
       this.surfaceUpdate(surfaceId, components),
-      this.dataModelUpdate(surfaceId, {
-        restaurants: [
-          { id: 1, name: 'Italian Bistro', cuisine: 'Italian', rating: 4.5 },
-          { id: 2, name: 'Sushi Palace', cuisine: 'Japanese', rating: 4.8 },
-          { id: 3, name: 'French Café', cuisine: 'French', rating: 4.3 },
-          { id: 4, name: 'Mexican Grill', cuisine: 'Mexican', rating: 4.2 },
-        ],
-      }),
       this.beginRendering(surfaceId, 'bookingCard'),
     ];
   }

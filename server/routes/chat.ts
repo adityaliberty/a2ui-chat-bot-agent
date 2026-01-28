@@ -36,12 +36,14 @@ router.post('/chat', (req: Request, res: Response) => {
     try {
       const response = await geminiAgent.processMessage(id, message, surfaceId);
 
-      // Send text response
-      res.write(`data: ${JSON.stringify({ type: 'text', content: response.text })}\n\n`);
-
       // Stream A2UI messages
       for (const msg of response.a2uiMessages) {
         res.write(`data: ${JSON.stringify({ type: 'a2ui', content: msg })}\n\n`);
+      }
+
+      // Send text response if no A2UI messages
+      if (response.a2uiMessages.length === 0) {
+        res.write(`data: ${JSON.stringify({ type: 'text', content: response.text })}\n\n`);
       }
 
       // Send completion signal
@@ -85,12 +87,14 @@ router.post('/action', (req: Request, res: Response) => {
     try {
       const response = await geminiAgent.handleUserAction(userId, action, data || {}, surfaceId);
 
-      // Send text response
-      res.write(`data: ${JSON.stringify({ type: 'text', content: response.text })}\n\n`);
-
       // Stream A2UI messages
       for (const msg of response.a2uiMessages) {
         res.write(`data: ${JSON.stringify({ type: 'a2ui', content: msg })}\n\n`);
+      }
+
+      // Send text response if no A2UI messages
+      if (response.a2uiMessages.length === 0) {
+        res.write(`data: ${JSON.stringify({ type: 'text', content: response.text })}\n\n`);
       }
 
       // Send completion signal
