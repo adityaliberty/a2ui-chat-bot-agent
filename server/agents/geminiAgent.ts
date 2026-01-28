@@ -1,11 +1,11 @@
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { A2UIMessage, A2UIComponent } from "../../shared/types.js";
 import { A2UIGenerator } from "../a2ui/generator.js";
 
-const client = new OpenAI();
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "AIzaSyDJf9wNuf252fpn367lG3ihDCXZg8dtK1k");
 
 interface ConversationContext {
-  messages: Array<{ role: "user" | "assistant" | "system"; content: string }>;
+  messages: Array<{ role: "user" | "model"; content: string }>;
   taskType: string;
   taskData: Record<string, any>;
 }
@@ -14,7 +14,7 @@ export class GeminiAgent {
   private conversationContexts: Map<string, ConversationContext> = new Map();
 
   /**
-   * Process user message and generate A2UI response using LLM
+   * Process user message and generate A2UI response using Gemini
    */
   async processMessage(
     userId: string,
@@ -33,18 +33,28 @@ export class GeminiAgent {
 
     context.messages.push({ role: "user", content: userMessage });
 
-    const systemPrompt = this.buildSystemPrompt();
-    
-    const response = await client.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...context.messages
-      ],
-      response_format: { type: "json_object" }
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      }
     });
 
-    const responseText = response.choices[0].message.content || "{}";
+    const systemPrompt = this.buildSystemPrompt();
+    
+    const conversationHistory = context.messages.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content }],
+    }));
+
+    const result = await model.generateContent({
+      contents: [
+        { role: "user", parts: [{ text: `SYSTEM INSTRUCTIONS:\n${systemPrompt}` }] },
+        ...conversationHistory
+      ],
+    });
+
+    const responseText = result.response.text();
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(responseText);
@@ -57,7 +67,7 @@ export class GeminiAgent {
     }
 
     const { text, a2ui } = parsedResponse;
-    context.messages.push({ role: "assistant", content: text });
+    context.messages.push({ role: "model", content: text });
 
     let a2uiMessages: A2UIMessage[] = [];
     if (a2ui && a2ui.components && a2ui.rootComponentId) {
@@ -75,7 +85,7 @@ export class GeminiAgent {
   }
 
   /**
-   * Handle user action from frontend using LLM
+   * Handle user action from frontend using Gemini
    */
   async handleUserAction(
     userId: string,
@@ -91,22 +101,31 @@ export class GeminiAgent {
       };
     }
 
-    // Add the action as a hidden user turn
+    // Add the action as a user turn
     const actionDesc = `User performed action: "${action}" with data: ${JSON.stringify(data)}`;
     context.messages.push({ role: "user", content: actionDesc });
 
-    const systemPrompt = this.buildSystemPrompt();
-    
-    const response = await client.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...context.messages
-      ],
-      response_format: { type: "json_object" }
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      }
     });
 
-    const responseText = response.choices[0].message.content || "{}";
+    const systemPrompt = this.buildSystemPrompt();
+    const conversationHistory = context.messages.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content }],
+    }));
+
+    const result = await model.generateContent({
+      contents: [
+        { role: "user", parts: [{ text: `SYSTEM INSTRUCTIONS:\n${systemPrompt}` }] },
+        ...conversationHistory
+      ],
+    });
+
+    const responseText = result.response.text();
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(responseText);
@@ -118,7 +137,7 @@ export class GeminiAgent {
     }
 
     const { text, a2ui } = parsedResponse;
-    context.messages.push({ role: "assistant", content: text });
+    context.messages.push({ role: "model", content: text });
 
     let a2uiMessages: A2UIMessage[] = [];
     if (a2ui && a2ui.components && a2ui.rootComponentId) {
