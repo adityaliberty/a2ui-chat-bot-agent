@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { A2UIMessage } from "../../shared/types.js";
 import { A2UIGenerator } from "../a2ui/generator.js";
 
-const genAI = new GoogleGenerativeAI("AIzaSyDJf9wNuf252fpn367lG3ihDCXZg8dtK1k");
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "AIzaSyDJf9wNuf252fpn367lG3ihDCXZg8dtK1k");
 
 interface ConversationContext {
   messages: Array<{ role: string; content: string }>;
@@ -105,39 +105,41 @@ Keep responses concise and actionable.`;
     const lowerMessage = userMessage.toLowerCase();
     const lowerResponse = assistantText.toLowerCase();
 
-    // Detect task type from user message
+    // Detect task type from user message with more specific keywords
     if (
-      lowerMessage.includes("restaurant") ||
-      lowerMessage.includes("book") ||
-      lowerMessage.includes("table") ||
-      lowerMessage.includes("dinner")
+      lowerMessage.includes("book restaurant") ||
+      lowerMessage.includes("book a restaurant") ||
+      lowerMessage.includes("restaurant booking") ||
+      (lowerMessage.includes("restaurant") && (lowerMessage.includes("book") || lowerMessage.includes("reserve")))
     ) {
       context.taskType = "restaurant_booking";
       return A2UIGenerator.restaurantBookingForm(surfaceId);
     }
 
     if (
-      lowerMessage.includes("project") ||
-      lowerMessage.includes("task") ||
-      lowerMessage.includes("team")
+      lowerMessage.includes("create project") ||
+      lowerMessage.includes("new project") ||
+      lowerMessage.includes("manage project") ||
+      (lowerMessage.includes("project") && (lowerMessage.includes("create") || lowerMessage.includes("new")))
     ) {
       context.taskType = "project_management";
       return A2UIGenerator.projectCreationForm(surfaceId);
     }
 
     if (
-      lowerMessage.includes("flight") ||
       lowerMessage.includes("book flight") ||
-      lowerMessage.includes("travel")
+      lowerMessage.includes("search flight") ||
+      lowerMessage.includes("flight booking") ||
+      (lowerMessage.includes("flight") && lowerMessage.includes("book"))
     ) {
       context.taskType = "flight_booking";
       return this.generateFlightBookingForm(surfaceId);
     }
 
     if (
-      lowerMessage.includes("event") ||
-      lowerMessage.includes("plan") ||
-      lowerMessage.includes("party")
+      lowerMessage.includes("plan event") ||
+      lowerMessage.includes("event planning") ||
+      (lowerMessage.includes("event") && lowerMessage.includes("plan"))
     ) {
       context.taskType = "event_planning";
       return this.generateEventPlanningForm(surfaceId);
