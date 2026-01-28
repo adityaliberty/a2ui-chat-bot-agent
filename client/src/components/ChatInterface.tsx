@@ -52,8 +52,10 @@ export const ChatInterface: React.FC = () => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantMessage: Message | null = null;
+      
+      // Use a consistent surface ID for the conversation
       const surface: Surface = {
-        id: `surface-${nanoid()}`,
+        id: `surface-${userId}`,
         rootComponentId: '',
         components: new Map(),
         dataModel: {},
@@ -141,8 +143,10 @@ export const ChatInterface: React.FC = () => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantMessage: Message | null = null;
+      
+      // Keep using the same surface for the response
       const surface: Surface = {
-        id: `surface-${nanoid()}`,
+        id: surfaceId,
         rootComponentId: '',
         components: new Map(),
         dataModel: {},

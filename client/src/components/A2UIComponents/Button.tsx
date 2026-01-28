@@ -11,7 +11,8 @@ export const Button: React.FC<ButtonProps> = ({ component, onAction }) => {
   const { label = 'Button' } = component.properties || {};
 
   const handleClick = () => {
-    onAction(component.id, 'click');
+    const action = component.properties?.action || 'click';
+    onAction(component.id, action);
   };
 
   return (
