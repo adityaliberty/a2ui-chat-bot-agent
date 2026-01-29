@@ -189,8 +189,12 @@ CORE RULES:
    - For General Restaurants: https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop
 5. ACTIONS:
    - "Get Directions": The action string MUST be "open_maps". You MUST also include a "destination" property in the button's properties (e.g., { "id": "btn_1", "type": "Button", "properties": { "label": "Get Directions", "action": "open_maps", "destination": "Restaurant Name, City" } }).
-   - "Book Table": For restaurant results, ALWAYS include a "Book Table" button with action "show_booking_form".
-6. COMPONENT TYPES:
+   - "Book Table": For restaurant results, ALWAYS include a "Book Table" button with action "show_booking_form". You MUST include the restaurant name in the button's properties (e.g., { "id": "btn_book_1", "type": "Button", "properties": { "label": "Book Table", "action": "show_booking_form", "restaurant_name": "Baba Sweets" } }).
+6. CONTEXTUAL BOOKING:
+   - When the user clicks "Book Table", the action data will include "restaurant_name". 
+   - In your response, DO NOT ask for the restaurant name again. Instead, say "I'm helping you book a table at [Restaurant Name]. Please provide the date, time, and number of guests."
+   - The booking form should NOT include an input for the restaurant name as it is already known.
+7. COMPONENT TYPES:
    - Text, Button, Input, Image, Card, Form, Column, Row, List, Label, Divider.
 
 A2UI STRUCTURE EXAMPLE (Restaurant Card):

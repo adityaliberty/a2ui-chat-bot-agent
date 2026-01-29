@@ -25,7 +25,8 @@ export const Button: React.FC<ButtonProps> = ({ component, onAction }) => {
       return;
     }
     
-    onAction(component.id, action);
+    // Pass all properties as data so the AI has context (like restaurant name)
+    onAction(component.id, action, component.properties);
   };
 
   return (
