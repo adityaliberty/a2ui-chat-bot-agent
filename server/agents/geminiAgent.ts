@@ -73,6 +73,11 @@ export class GeminiAgent {
     }
 
     const { text, a2ui } = parsedResponse;
+    console.log(
+      JSON.stringify(text),
+      JSON.stringify(a2ui),
+      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    );
     context.messages.push({ role: "model", content: text });
 
     let a2uiMessages: A2UIMessage[] = [];
@@ -186,7 +191,7 @@ A2UI COMPONENT TYPES:
 - Text: { id, type: "Text", properties: { text: string } }
 - Button: { id, type: "Button", properties: { label: string, action: string } }
 - Input: { id, type: "Input", properties: { placeholder: string, type: "text"|"number"|"date"|"time" } }
-- Image: { id, type: "Image", properties: { src: string, alt: string } }
+- Image: { id, type: "Image", properties: { src: string, alt: string, className: string } }
 - Card: { id, type: "Card", properties: { title: string }, children: string[] }
 - Form: { id, type: "Form", properties: { onSubmit: "submit" }, children: string[] }
 - Column: { id, type: "Column", children: string[] }
@@ -194,18 +199,19 @@ A2UI COMPONENT TYPES:
 
 INTERACTIVE WORKFLOW EXAMPLE (Restaurant Booking):
 1. User: "Give me top 5 sushi restaurants in Bangalore"
-   Response: Text with recommendations + A2UI Column of Cards (Image, Name, Location, "Book Now" Button with action "book-restaurant-{id}").
-2. User clicks "Book Now":
-   Response: Text "Let's book a table" + A2UI Form (Date Input, Guests Input, "Confirm" Button).
-3. User submits Form:
-   Response: Text "Booking confirmed!" + A2UI Card showing details.
+   Response: Text with recommendations + A2UI Column of Cards. Each card should contain an Image, Name (Text), Description (Text), and a Row of Buttons ("Explore Menu", "Get Directions").
+2. User clicks "Explore Menu":
+   Response: Text "Here is the menu for {restaurant}" + A2UI List of items.
+3. User clicks "Get Directions":
+   Response: Text "Opening directions for {restaurant}..."
 
 IMPORTANT:
 - Always use unique IDs for components.
 - Buttons should have descriptive 'action' strings.
 - Forms should have 'onSubmit' property.
+- Images MUST have a 'src' property. Use high-quality Unsplash URLs for restaurant images if real ones aren't available.
 - When a user performs an action, you will receive a message describing the action and data. Respond with the next step in the workflow.
-- Ensure the UI is interactive and visually appealing.`;
+- Ensure the UI is interactive and visually appealing by using Cards, Rows, and Columns.`;
   }
 
   clearContext(userId: string): void {
