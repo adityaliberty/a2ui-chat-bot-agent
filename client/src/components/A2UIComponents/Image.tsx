@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { A2UIComponent } from "@/types/a2ui";
 
 interface ImageProps {
@@ -12,30 +12,21 @@ interface ImageProps {
 }
 
 export const Image: React.FC<ImageProps> = ({ component }) => {
-  const { src, alt, width, height, className } = component.properties || {};
+  const { src, alt, className } = component.properties || {};
+  const [hasError, setHasError] = useState(false);
 
-  // If no source is provided, don't render anything or show a placeholder
-  if (!src) {
-    return (
-      <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-md">
-        <span className="text-gray-400">No Image Available</span>
-      </div>
-    );
-  }
+  // Fallback image if source is missing or fails
+  const fallbackSrc = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=60";
+  const displaySrc = !src || hasError ? fallbackSrc : src;
 
   return (
-    <div className="w-full overflow-hidden rounded-md bg-gray-100">
+    <div className="w-full overflow-hidden rounded-md bg-gray-100 mb-2">
       <img
-        src={src}
+        src={displaySrc}
         alt={alt || "A2UI Image"}
-        width={width}
-        height={height}
-        className={`object-cover w-full h-auto min-h-[150px] ${className || ""}`}
+        className={`object-cover w-full h-48 sm:h-64 ${className || ""}`}
         loading="lazy"
-        onError={(e) => {
-          // Fallback to a neutral placeholder if the specific image fails to load
-          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=60";
-        }}
+        onError={() => setHasError(true)}
       />
     </div>
   );

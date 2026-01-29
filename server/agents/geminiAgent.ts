@@ -185,12 +185,13 @@ CORE RULES:
    - EVERY Input MUST have a preceding "Label" component or a clear "placeholder".
    - EVERY Card MUST have a descriptive "title".
    - EVERY Button MUST have a clear, action-oriented "label".
-4. IMAGES:
+4. IMAGES (CRITICAL):
    - Images MUST use high-quality, direct Unsplash URLs.
-   - For Sushi: https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&auto=format&fit=crop
-   - For Indian Sweets: https://images.unsplash.com/photo-1589119908995-c6837fa14848?w=800&auto=format&fit=crop
-   - For General Restaurants: https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop
-   - For Flights/Travel: https://images.unsplash.com/photo-1436491865332-7a61a109c0f3?w=800&auto=format&fit=crop
+   - ALWAYS use this format: https://images.unsplash.com/photo-[ID]?w=800&auto=format&fit=crop
+   - Sushi: https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&auto=format&fit=crop
+   - Indian Sweets: https://images.unsplash.com/photo-1589119908995-c6837fa14848?w=800&auto=format&fit=crop
+   - General Restaurants: https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop
+   - Flights: https://images.unsplash.com/photo-1436491865332-7a61a109c0f3?w=800&auto=format&fit=crop
 5. ACTIONS:
    - "Get Directions": Use action "open_maps" and include "destination" in properties.
    - "Book Table": Use action "show_booking_form" and include "restaurant_name" in properties.
