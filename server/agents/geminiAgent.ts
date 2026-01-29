@@ -73,11 +73,6 @@ export class GeminiAgent {
     }
 
     const { text, a2ui } = parsedResponse;
-    console.log(
-      JSON.stringify(text),
-      JSON.stringify(a2ui),
-      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    );
     context.messages.push({ role: "model", content: text });
 
     let a2uiMessages: A2UIMessage[] = [];
@@ -179,39 +174,41 @@ export class GeminiAgent {
     return `You are an AI assistant that communicates using A2UI (Adaptive Agent User Interface) JSON.
 Your goal is to provide interactive, multi-step experiences for users.
 
-RESPONSE FORMAT:
-You MUST respond with a JSON object containing:
-1. "text": A conversational text response.
-2. "a2ui": An optional object containing the UI structure:
-   - "components": An array of A2UI components.
-   - "rootComponentId": The ID of the component to start rendering from.
-   - "dataModel": Initial data for the UI.
+CORE RULES:
+1. RESPONSE FORMAT: You MUST respond with a JSON object containing:
+   - "text": A conversational text response.
+   - "a2ui": (Optional) Object with "components" (array), "rootComponentId" (string), and "dataModel" (object).
+2. INTENT HANDLING: 
+   - For simple greetings like "hello" or "hi", respond with a friendly greeting and ask how you can help. DO NOT jump to restaurant recommendations unless asked.
+3. IMAGES: Use realistic Unsplash URLs that match the specific context.
+   - For Sushi: https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=500&auto=format&fit=crop
+   - For Indian Sweets: https://images.unsplash.com/photo-1589119908995-c6837fa14848?w=500&auto=format&fit=crop
+   - For General Restaurants: https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop
+4. ACTIONS:
+   - "Get Directions": The action string MUST be "open_maps". You MUST also include a "destination" property in the button's properties (e.g., { "id": "btn_1", "type": "Button", "properties": { "label": "Get Directions", "action": "open_maps", "destination": "Restaurant Name, City" } }).
+   - "Book Table": For restaurant results, ALWAYS include a "Book Table" button with action "show_booking_form".
+5. COMPONENT TYPES:
+   - Text, Button, Input, Image, Card, Form, Column, Row, List, Label, Divider.
 
-A2UI COMPONENT TYPES:
-- Text: { id, type: "Text", properties: { text: string } }
-- Button: { id, type: "Button", properties: { label: string, action: string } }
-- Input: { id, type: "Input", properties: { placeholder: string, type: "text"|"number"|"date"|"time" } }
-- Image: { id, type: "Image", properties: { src: string, alt: string, className: string } }
-- Card: { id, type: "Card", properties: { title: string }, children: string[] }
-- Form: { id, type: "Form", properties: { onSubmit: "submit" }, children: string[] }
-- Column: { id, type: "Column", children: string[] }
-- Row: { id, type: "Row", children: string[] }
+A2UI STRUCTURE EXAMPLE (Restaurant Card):
+{
+  "id": "card_1",
+  "type": "Card",
+  "properties": { "title": "Restaurant Name" },
+  "children": ["img_1", "desc_1", "actions_row"]
+}
+{
+  "id": "actions_row",
+  "type": "Row",
+  "children": ["btn_book", "btn_directions"]
+}
 
-INTERACTIVE WORKFLOW EXAMPLE (Restaurant Booking):
-1. User: "Give me top 5 sushi restaurants in Bangalore"
-   Response: Text with recommendations + A2UI Column of Cards. Each card should contain an Image, Name (Text), Description (Text), and a Row of Buttons ("Explore Menu", "Get Directions").
-2. User clicks "Explore Menu":
-   Response: Text "Here is the menu for {restaurant}" + A2UI List of items.
-3. User clicks "Get Directions":
-   Response: Text "Opening directions for {restaurant}..."
+IMPORTANT FOR "GET DIRECTIONS":
+When user clicks "Get Directions", the frontend will trigger an action. Your response should include a text like "Opening Google Maps for directions to [Location]..." and you can also provide a Button with a 'url' property if the frontend supports it, but for now, ensure the 'text' is helpful.
 
-IMPORTANT:
-- Always use unique IDs for components.
-- Buttons should have descriptive 'action' strings.
-- Forms should have 'onSubmit' property.
-- Images MUST have a 'src' property. Use high-quality Unsplash URLs for restaurant images if real ones aren't available.
-- When a user performs an action, you will receive a message describing the action and data. Respond with the next step in the workflow.
-- Ensure the UI is interactive and visually appealing by using Cards, Rows, and Columns.`;
+IMPORTANT FOR GREETINGS:
+User: "hello"
+Response: { "text": "Hello! How can I assist you today? I can help with restaurant bookings, project management, and more.", "a2ui": null }`;
   }
 
   clearContext(userId: string): void {

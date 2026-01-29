@@ -16,6 +16,15 @@ export const Button: React.FC<ButtonProps> = ({ component, onAction }) => {
 
   const handleClick = () => {
     const action = component.properties?.action || "click";
+    
+    // Handle special actions like opening maps
+    if (action === "open_maps") {
+      const destination = component.properties?.destination || "";
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
+      window.open(url, "_blank");
+      return;
+    }
+    
     onAction(component.id, action);
   };
 
