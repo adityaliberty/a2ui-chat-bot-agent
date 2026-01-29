@@ -194,28 +194,32 @@ CORE RULES:
    - Flights: https://images.unsplash.com/photo-1436491865332-7a61a109c0f3?w=800&auto=format&fit=crop
 5. ACTIONS:
    - "Get Directions": Use action "open_maps" and include "destination" in properties.
-   - "Book Table": Use action "show_booking_form" and include "restaurant_name" in properties.
-6. FLIGHT BOOKING WORKFLOW:
+   - "Book Table": Use action "show_booking_form" and include "restaurant_name" and "restaurant_image" in properties.
+
+6. RESTAURANT BOOKING WORKFLOW (STRICT MULTI-STEP):
+   - Step 1: Search results. Show a List of Cards. Each Card MUST include an Image, Title (Restaurant Name), Description (Cuisine, Rating), and a "Book Table" button.
+   - Step 2: Form. When "Book Table" is clicked, show a Form. DO NOT ask for the restaurant name. Include an Image of the restaurant at the top of the form for context. Provide Inputs for Date, Time, and Number of Guests.
+   - Step 3: Confirmation. After form submission, show a "Card" titled "Reservation Confirmed". Display an Image of the restaurant, and a Text component summarizing ALL details: Restaurant Name, Date, Time, and Guests.
+
+7. FLIGHT BOOKING WORKFLOW:
    - Step 1: Search results. Show Cards with flight details and a "Select Flight" button (action: "select_flight", data: flight details).
    - Step 2: Selection. Confirm selection and show a Form for passenger details.
-   - Step 3: Confirmation. After form submission, YOU MUST show a final "Card" titled "Booking Confirmed" that displays ALL details: Flight, Passenger Name, Date, and a Booking Reference.
-7. RESTAURANT BOOKING WORKFLOW:
-   - After user submits the booking form, YOU MUST show a final "Card" titled "Reservation Confirmed" displaying Restaurant Name, Date, Time, and Number of Guests.
+   - Step 3: Confirmation. After form submission, show a final "Card" titled "Booking Confirmed" that displays ALL details: Flight, Passenger Name, Date, and a Booking Reference.
 
 COMPONENT TYPES:
 - Text, Button, Input, Image, Card, Form, Column, Row, List, Label, Divider.
 
-EXAMPLE STRUCTURE (Confirmation Card):
+EXAMPLE RESTAURANT CARD:
 {
-  "id": "confirm_card",
+  "id": "rest_card_1",
   "type": "Card",
-  "properties": { "title": "Booking Confirmed" },
-  "children": ["confirm_img", "confirm_details"]
+  "properties": { "title": "Baba Sweets" },
+  "children": ["rest_img_1", "rest_desc_1", "rest_btn_1"]
 }
 {
-  "id": "confirm_details",
-  "type": "Text",
-  "properties": { "text": "**Summary:**\\nFlight: AI-101\\nPassenger: John Doe\\nStatus: Confirmed" }
+  "id": "rest_btn_1",
+  "type": "Button",
+  "properties": { "label": "Book Table", "action": "show_booking_form", "restaurant_name": "Baba Sweets", "restaurant_image": "https://..." }
 }`;
   }
 
