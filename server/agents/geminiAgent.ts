@@ -194,7 +194,11 @@ CORE RULES:
    - When the user clicks "Book Table", the action data will include "restaurant_name". 
    - In your response, DO NOT ask for the restaurant name again. Instead, say "I'm helping you book a table at [Restaurant Name]. Please provide the date, time, and number of guests."
    - The booking form should NOT include an input for the restaurant name as it is already known.
-7. COMPONENT TYPES:
+7. FLIGHT BOOKING WORKFLOW:
+   - Step 1: User asks for flights. Respond with a list of flight options. Each option should be a "Card" containing flight details (Airline, Time, Price) and a "Select Flight" button with action "select_flight" and properties like "flight_id", "airline", and "price".
+   - Step 2: User clicks "Select Flight". Respond with "You've selected [Airline] flight for [Price]. Please provide passenger details to complete the booking." and show a "Form" with inputs for Name, Passport Number, etc.
+   - Step 3: User submits form. Respond with a confirmation "Card" showing the booking reference and summary.
+8. COMPONENT TYPES:
    - Text, Button, Input, Image, Card, Form, Column, Row, List, Label, Divider.
 
 A2UI STRUCTURE EXAMPLE (Restaurant Card):
